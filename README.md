@@ -230,8 +230,8 @@ Or manually create/edit `.mcp.json` in your project root:
 ```bash
 git clone https://github.com/lvluu/bitbucket-dc-mcp.git
 cd bitbucket-dc-mcp
-npm install
-npm run build
+bun install
+bun run build
 ```
 
 Agents and contributors: see `CLAUDE.md`.
@@ -241,7 +241,7 @@ Agents and contributors: see `CLAUDE.md`.
 | Issue | Solution |
 |-------|----------|
 | `BITBUCKET_URL is required` | Set the `BITBUCKET_URL` environment variable or add it to `.env` |
-| `Cannot find module` errors | Run `npm run build` before starting the server |
+| `Cannot find module` errors | Run `bun run build` before starting the server |
 | `401 Unauthorized` | Check your token or username/password credentials |
 | `deleteBranch is disabled` | Set `BITBUCKET_ENABLE_DANGEROUS=true` to enable destructive operations |
 | Tools not loading | Verify module has a valid default export matching `RegisterableModule` |

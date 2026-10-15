@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "vitest";
+import { afterEach, expect, test } from "bun:test";
 import { squeeze, serialize, capText } from "./squeeze.js";
 import { jsonResult } from "./errors.js";
 

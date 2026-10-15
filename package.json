@@ -5,15 +5,16 @@
   "main": "build/index.js",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "bun test src",
+    "test:watch": "bun test --watch",
     "build": "tsc && chmod 755 build/index.js",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "prepublishOnly": "bun run typecheck && bun test src && bun run build",
     "typecheck": "tsc --noEmit",
-    "inspect": "npm run build && npx @modelcontextprotocol/inspector node build/index.js",
-    "inspect:http": "npm run build && npx @modelcontextprotocol/inspector http://localhost:3000/mcp",
-    "serve:stdio": "npm run build && MCP_TRANSPORT=stdio node build/index.js",
-    "serve:http": "npm run build && MCP_TRANSPORT=http PORT=3000 node build/index.js"
+    "inspect": "bun run build && npx @modelcontextprotocol/inspector node build/index.js",
+    "inspect:http": "bun run build && npx @modelcontextprotocol/inspector http://localhost:3000/mcp",
+    "serve:stdio": "bun run build && MCP_TRANSPORT=stdio node build/index.js",
+    "serve:http": "bun run build && MCP_TRANSPORT=http PORT=3000 node build/index.js",
+    "dev": "MCP_TRANSPORT=stdio bun src/index.ts"
   },
   "keywords": [
     "mcp",
@@ -41,7 +42,7 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.2",
+    "@modelcontextprotocol/sdk": "~1.25.3",
     "axios": "^1.13.5",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
@@ -53,8 +54,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
     "@types/node": "^24.9.1",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "typescript": "^7.0.2",
+    "@types/bun": "latest"
   },
   "bin": {
     "bitbucket-dc-mcp": "./build/index.js"

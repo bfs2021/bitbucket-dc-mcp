@@ -12,7 +12,7 @@
     "sourceMap": true,
     "declaration": false,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": ["node", "bun"],
     "paths": {
       "#lib/*.js": ["./src/lib/*.ts"],
       "#registry/*.js": ["./src/registry/*.ts"],
@@ -20,6 +20,5 @@
       "#tools/*.js": ["./src/tools/*.ts"]
     }
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src"]
 }

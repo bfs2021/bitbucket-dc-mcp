@@ -4,7 +4,7 @@ Setup, env vars, tools and client config: `README.md`. Not repeated here.
 
 ## Commands
 
-`npm run build` (tsc → `build/`) | `npm test` (vitest) | `npm run typecheck`. Edit `src/*.ts`, never `build/`.
+`bun install` | `bun run build` (tsc 7 → `build/`) | `bun test` | `bun run typecheck` | `bun run dev` (stdio, no build). Edit `src/*.ts`, never `build/`.
 History: sources were recovered from the npm package, see `RECOVERY.md`.
 
 ## Layout
@@ -18,5 +18,6 @@ History: sources were recovered from the npm package, see `RECOVERY.md`.
 
 - Return via `jsonResult`/`textResult` only; never `JSON.stringify(..., null, 2)` in a tool.
 - New list/entity tool: add a summarizer in `field-filter.js`; new noisy key: add to `NOISE_KEYS` in `squeeze.js`.
-- Add a vitest test (`src/**/*.test.ts`) for any squeeze change; keep error text one line, no stack traces.
+- Add a `bun:test` test (`src/**/*.test.ts`) for any squeeze change; keep error text one line, no stack traces.
 - New env var: document it in the README table only.
+- Keep `@modelcontextprotocol/sdk` on `~1.25`: 1.32 + tsc 7 breaks zod schema typing (TS2589/TS2322).
