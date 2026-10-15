@@ -113,11 +113,19 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 | `BITBUCKET_PASSWORD` | Yes* | Password for basic auth | — |
 | `BITBUCKET_DEFAULT_PROJECT` | No | Default project key for tools that accept `projectKey` | — |
 | `BITBUCKET_ENABLE_DANGEROUS` | No | Enable destructive operations (`deletePRComment`, `deleteBranch`) | `false` |
+| `BITBUCKET_VERBOSE` | No | Disable the token squeeze (pretty JSON, no field stripping, no text cap) | `false` |
+| `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
 | `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
 | `PORT` | No | HTTP server port | `3000` |
 | `CORS_ORIGIN` | No | CORS allowed origins | `*` |
 
 \* Either `BITBUCKET_TOKEN` or both `BITBUCKET_USERNAME` + `BITBUCKET_PASSWORD` are required.
+
+## Token Squeeze
+
+Every tool result is shrunk before it reaches the model: compact JSON, `links`/`link`/`avatarUrl` and
+null/empty fields removed (`false`, `0` and an empty `values` page are kept), and long text capped at
+`BITBUCKET_MAX_CHARS`. List tools also return field-trimmed summaries. Set `BITBUCKET_VERBOSE=true` for raw output.
 
 ## Transport Modes
 
@@ -226,7 +234,7 @@ npm install
 npm run build
 ```
 
-See `CLAUDE.md` for the full list of commands, architecture details, and contribution guidance.
+Agents and contributors: see `CLAUDE.md`.
 
 ## Troubleshooting
 

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { capText, serialize } from "#lib/squeeze.js";
 function extractAxiosErrorMessage(error) {
     const responseData = error.response?.data;
     const msg = responseData?.message ?? responseData?.errors ?? error.message;
@@ -23,12 +24,12 @@ export function formatError(error) {
 }
 export function jsonResult(data) {
     return {
-        content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        content: [{ type: "text", text: capText(serialize(data)) }],
     };
 }
 export function textResult(text) {
     return {
-        content: [{ type: "text", text }],
+        content: [{ type: "text", text: capText(text) }],
     };
 }
 //# sourceMappingURL=errors.js.map
