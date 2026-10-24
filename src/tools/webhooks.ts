@@ -30,7 +30,7 @@ const webhooksModule = {
                 if (project === undefined) {
                     return { content: [{ type: "text", text: "projectKey is required (or set BITBUCKET_DEFAULT_PROJECT)" }], isError: true };
                 }
-                const url = `${getOriginUrl()}/rest/webhooks/1.0/projects/${project}/repos/${args.repoSlug}/webhooks`;
+                const url = `${getOriginUrl()}/rest/webhooks/1.0/projects/${encodeURIComponent(project)}/repos/${encodeURIComponent(args.repoSlug)}/webhooks`;
                 const result = await fetchPage(client, url, {
                     limit: args.limit,
                     start: args.start,

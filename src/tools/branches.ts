@@ -77,7 +77,7 @@ const branchesModule = {
                 }
                 const client = getClient();
                 // branch-utils is a separate REST module, not under /rest/api/1.0
-                await client.delete(`${getOriginUrl()}/rest/branch-utils/latest/projects/${args.projectKey}/repos/${args.repoSlug}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
+                await client.delete(`${getOriginUrl()}/rest/branch-utils/latest/projects/${encodeURIComponent(args.projectKey)}/repos/${encodeURIComponent(args.repoSlug)}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
                 return textResult(`Branch '${args.name}' deleted successfully.`);
             }
             catch (error) {
