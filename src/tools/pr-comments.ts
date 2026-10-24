@@ -52,7 +52,7 @@ const prCommentsModule = {
             }
         });
         server.registerTool("addPRComment", {
-            description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately.",
+            description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately (only for the session that started the review; other sessions post immediately).",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
@@ -89,8 +89,8 @@ const prCommentsModule = {
                 }
                 // If a review session is active, buffer the comment instead of posting
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                if (hasActiveReview(key)) {
-                    const index = addPendingComment(key, body);
+                if (hasActiveReview(key, server)) {
+                    const index = addPendingComment(key, server, body);
                     return jsonResult({ state: "PENDING", pendingIndex: index, text: args.text });
                 }
                 const client = getClient();
