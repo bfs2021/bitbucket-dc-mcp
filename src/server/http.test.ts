@@ -1,10 +1,10 @@
-import type { Server } from "node:http";
+import { request as httpRequest, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createHttpApp, positiveInt, type HttpApp, type HttpOptions } from "./http.js";
+import { createHttpApp, isLoopbackHost, LOOPBACK_HOSTNAMES, positiveInt, resolveHost, type HttpApp, type HttpOptions } from "./http.js";
 
 let http: HttpApp;
 let listener: Server;
@@ -235,4 +235,102 @@ test("positiveInt falls back on unset, non-numeric and non-positive values", () 
     expect(positiveInt("0", 5)).toBe(5);
     expect(positiveInt("-3", 5)).toBe(5);
     expect(positiveInt("7", 5)).toBe(7);
+});
+
+async function authApp(authToken: string | undefined): Promise<Local> {
+    return localApp({ authToken });
+}
+
+function initBody(): string {
+    return JSON.stringify({
+        jsonrpc: "2.0", id: 1, method: "initialize",
+        params: { protocolVersion: "2025-03-26", capabilities: {}, clientInfo: { name: "c", version: "0" } },
+    });
+}
+
+async function postInit(u: URL, authorization?: string): Promise<Response> {
+    const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json, text/event-stream" };
+    if (authorization !== undefined) {
+        headers.authorization = authorization;
+    }
+    return fetch(u, { method: "POST", headers, body: initBody() });
+}
+
+test("auth token: /mcp rejects missing or wrong bearer with 401, accepts the right one", async () => {
+    const app = await authApp("s3cret");
+    try {
+        const none = await postInit(app.url);
+        expect(none.status).toBe(401);
+        expect(none.headers.get("www-authenticate")).toBe("Bearer");
+        expect((await postInit(app.url, "Bearer wrong")).status).toBe(401);
+        expect((await postInit(app.url, "Basic s3cret")).status).toBe(401);
+        expect((await postInit(app.url, "bearer s3cret")).status).toBe(200);
+        expect(app.http.sessionCount()).toBe(1);
+    } finally {
+        await app.stop();
+    }
+});
+
+test("auth token: /health stays open and CORS preflight is not blocked", async () => {
+    const app = await authApp("s3cret");
+    try {
+        const health = await fetch(new URL("/health", app.url));
+        expect(health.status).toBe(200);
+        const preflight = await fetch(app.url, { method: "OPTIONS", headers: { origin: "https://a.example", "access-control-request-method": "POST" } });
+        expect(preflight.status).toBeLessThan(300);
+    } finally {
+        await app.stop();
+    }
+});
+
+test("without an auth token /mcp stays open", async () => {
+    const app = await authApp(undefined);
+    try {
+        expect((await postInit(app.url)).status).toBe(200);
+    } finally {
+        await app.stop();
+    }
+});
+
+test("resolveHost defaults to loopback; isLoopbackHost classifies hosts", () => {
+    expect(resolveHost(undefined)).toBe("127.0.0.1");
+    expect(resolveHost("  ")).toBe("127.0.0.1");
+    expect(resolveHost("0.0.0.0")).toBe("0.0.0.0");
+    for (const h of ["127.0.0.1", "127.1.2.3", "::1", "localhost"]) {
+        expect(isLoopbackHost(h)).toBe(true);
+    }
+    for (const h of ["0.0.0.0", "::", "192.168.1.5", "example.com"]) {
+        expect(isLoopbackHost(h)).toBe(false);
+    }
+});
+
+test("server started with the default host is unreachable on a non-loopback address", async () => {
+    const http = createHttpApp(() => Promise.resolve(new McpServer({ name: "t", version: "0" })), "*");
+    const srv = http.app.listen(0, resolveHost(undefined));
+    await new Promise<void>(resolve => srv.once("listening", () => { resolve(); }));
+    try {
+        expect((srv.address() as AddressInfo).address).toBe("127.0.0.1");
+    } finally {
+        await http.close();
+        srv.close();
+    }
+});
+
+test("allowedHosts rejects a rebound Host header with 403 and accepts loopback names", async () => {
+    const app = await localApp({ allowedHosts: LOOPBACK_HOSTNAMES });
+    try {
+        const port = app.url.port;
+        const call = (host: string) => new Promise<number>((resolve, reject) => {
+            const req = httpRequest({ host: "127.0.0.1", port, path: "/health", headers: { host } }, res => { res.resume(); resolve(res.statusCode ?? 0); });
+            req.on("error", reject);
+            req.end();
+        });
+        expect(await call(`127.0.0.1:${port}`)).toBe(200);
+        expect(await call(`localhost:${port}`)).toBe(200);
+        expect(await call(`[::1]:${port}`)).toBe(200);
+        expect(await call(`evil.example:${port}`)).toBe(403);
+        expect(await call("evil.example")).toBe(403);
+    } finally {
+        await app.stop();
+    }
 });
